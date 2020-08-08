@@ -19,6 +19,7 @@ dependencies {
     implementation 'org.geotools:gt-main:23.1'
     implementation 'org.geotools:gt-render:23.1'
     implementation 'org.geotools:gt-wms:23.1'
+    implementation 'org.geotools:gt-wmts:23.1'
     implementation 'org.geotools:gt-swing:23.1'
     runtime group: 'org.geotools', name: 'gt-epsg-hsql', version: '23.1'
     compile group: 'com.formdev', name: 'flatlaf', version: '0.39'

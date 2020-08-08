@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.ParallelGroup;
@@ -33,6 +34,10 @@ import org.geotools.ows.wms.WMSCapabilities;
 import org.geotools.ows.wms.WMSUtils;
 import org.geotools.ows.wms.WebMapServer;
 import org.geotools.ows.wms.map.WMSLayer;
+import org.geotools.ows.wmts.WebMapTileServer;
+import org.geotools.ows.wmts.map.WMTSMapLayer;
+import org.geotools.ows.wmts.model.WMTSCapabilities;
+import org.geotools.ows.wmts.model.WMTSLayer;
 import org.geotools.referencing.CRS;
 import org.geotools.renderer.GTRenderer;
 import org.geotools.renderer.lite.StreamingRenderer;
@@ -68,6 +73,40 @@ public class Main extends JFrame {
         fooButton.addActionListener((event) -> System.exit(0));
 
                 
+        URL wmtsUrl = null;
+        try {
+            wmtsUrl = new URL("https://geo.so.ch/api/wmts/1.0.0/WMTSCapabilities.xml");
+        } catch (MalformedURLException e) {
+          // will not happen
+        }
+
+        WebMapTileServer wmts = null;
+        try {
+          wmts = new WebMapTileServer(wmtsUrl);
+        } catch (IOException e) {
+          // There was an error communicating with the server
+          // For example, the server is down
+        } catch (ServiceException e) {
+          // The server returned a ServiceException (unusual in this case)
+        } catch (SAXException e) {
+          // Unable to parse the response from the server
+          // For example, the capabilities it returned was not valid
+        }
+
+        WMTSCapabilities wmtsCapabilities = wmts.getCapabilities();
+
+        // gets all the layers in a list, in the order they appear in
+        // the capabilities document
+        List<WMTSLayer> wmtsLayers = wmtsCapabilities.getLayerList();
+        WMTSLayer myWMTSLayer = null;
+        for (WMTSLayer wmtsLayer : wmtsLayers) {
+            System.out.println(wmtsLayer.getName());
+            if(wmtsLayer.getName().equalsIgnoreCase("ch.so.agi.hintergrundkarte_sw")) {
+                myWMTSLayer = wmtsLayer;
+            }
+        }
+        
+        
         URL url = null;
         try {
 //            url = new URL("https://geo.so.ch/wms/oereb?REQUEST=GetCapabilities&SERVICE=WMS&VERSION=1.3.0");
@@ -100,7 +139,7 @@ public class Main extends JFrame {
         Layer[] layers = WMSUtils.getNamedLayers(capabilities);
         Layer myLayer = null;
         for (Layer layer : layers) {
-            System.out.println(layer.getName());
+//            System.out.println(layer.getName());
             
             //if (layer.getName().equalsIgnoreCase("ch.SO.NutzungsplanungGrundnutzung")) {
             if (layer.getName().equalsIgnoreCase("ch.so.agi.hintergrundkarte_farbig")) {
@@ -122,7 +161,8 @@ public class Main extends JFrame {
         vp.setBounds(re);
 //        map.setViewport(vp);
                
-        map.addLayer(new WMSLayer(wms, myLayer));
+//        map.addLayer(new WMSLayer(wms, myLayer));
+        map.addLayer(new WMTSMapLayer(wmts, myWMTSLayer));
         
         GTRenderer renderer = new StreamingRenderer();
         JMapPane mapPane = new JMapPane(map);
